@@ -51,7 +51,14 @@ const TextOutput = ({ text, isProcessing }: TextOutputProps) => {
   const refineText = async () => {
     setIsRefining(true);
     try {
-      // First attempt to get the refined text
+      // Deduct credits first
+      const { data: deductData, error: deductError } = await supabase.rpc('deduct_credits', {
+        user_id: (await supabase.auth.getUser()).data.user?.id,
+        amount: REFINE_COST
+      });
+
+      if (deductError) throw deductError;
+
       const { data, error } = await supabase.functions.invoke('chat-completion', {
         body: {
           messages: [
@@ -64,14 +71,6 @@ const TextOutput = ({ text, isProcessing }: TextOutputProps) => {
       });
 
       if (error) throw error;
-
-      // Only deduct credits if we successfully got the refined text
-      const { data: deductData, error: deductError } = await supabase.rpc('deduct_credits', {
-        user_id: (await supabase.auth.getUser()).data.user?.id,
-        amount: REFINE_COST
-      });
-
-      if (deductError) throw deductError;
 
       setRefinedText(data.choices[0].message.content);
       toast({
