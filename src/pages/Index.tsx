@@ -3,9 +3,10 @@ import { createWorker } from 'tesseract.js';
 import ImageUpload from '@/components/ImageUpload';
 import TextOutput from '@/components/TextOutput';
 import { useToast } from '@/components/ui/use-toast';
-import { Loader2, RefreshCcw, LogOut, CreditCard } from 'lucide-react';
+import { Loader2, RefreshCcw, LogOut, CreditCard, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 
@@ -14,6 +15,9 @@ const Index = () => {
   const [extractedText, setExtractedText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [creditBalance, setCreditBalance] = useState<number>(0);
+  const [message, setMessage] = useState('');
+  const [chatHistory, setChatHistory] = useState<Array<{role: string, content: string}>>([]);
+  const [isSending, setIsSending] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -69,6 +73,38 @@ const Index = () => {
   const resetAll = () => {
     setSelectedImage(null);
     setExtractedText('');
+  };
+
+  const sendMessage = async () => {
+    if (!message.trim()) return;
+
+    setIsSending(true);
+    const newMessage = { role: 'user', content: message };
+    const updatedHistory = [...chatHistory, newMessage];
+    setChatHistory(updatedHistory);
+    setMessage('');
+
+    try {
+      const { data, error } = await supabase.functions.invoke('chat-completion', {
+        body: { messages: updatedHistory }
+      });
+
+      if (error) throw error;
+
+      const assistantMessage = { 
+        role: 'assistant', 
+        content: data.choices[0].message.content 
+      };
+      setChatHistory([...updatedHistory, assistantMessage]);
+    } catch (error) {
+      toast({
+        title: "Error sending message",
+        description: "Please try again later",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -131,7 +167,46 @@ const Index = () => {
             )}
           </Card>
           
-          <TextOutput text={extractedText} isProcessing={isProcessing} />
+          <div className="space-y-6">
+            <TextOutput text={extractedText} isProcessing={isProcessing} />
+            
+            <Card className="p-6">
+              <h2 className="text-2xl font-semibold text-gray-900 mb-6">Chat</h2>
+              <div className="space-y-4 mb-4 max-h-[300px] overflow-y-auto">
+                {chatHistory.map((msg, index) => (
+                  <div
+                    key={index}
+                    className={`p-3 rounded-lg ${
+                      msg.role === 'user' 
+                        ? 'bg-blue-100 ml-auto max-w-[80%]' 
+                        : 'bg-gray-100 mr-auto max-w-[80%]'
+                    }`}
+                  >
+                    {msg.content}
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Type your message..."
+                  onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                  disabled={isSending}
+                />
+                <Button 
+                  onClick={sendMessage}
+                  disabled={isSending}
+                >
+                  {isSending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
