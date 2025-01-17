@@ -10,6 +10,9 @@ import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 
+const OCR_COST = 5;
+const REFINE_COST = 15;
+
 const Index = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [extractedText, setExtractedText] = useState('');
@@ -18,6 +21,7 @@ const Index = () => {
   const [message, setMessage] = useState('');
   const [chatHistory, setChatHistory] = useState<Array<{role: string, content: string}>>([]);
   const [isSending, setIsSending] = useState(false);
+  const [isDeductingCredits, setIsDeductingCredits] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -38,7 +42,56 @@ const Index = () => {
     };
 
     fetchUserProfile();
+
+    // Set up realtime subscription for credit balance updates
+    const channel = supabase
+      .channel('credit-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${supabase.auth.getUser().then(({ data }) => data.user?.id)}`
+        },
+        (payload) => {
+          const newBalance = payload.new.credit_balance;
+          setCreditBalance(newBalance);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
+
+  const deductCredits = async (amount: number) => {
+    setIsDeductingCredits(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { data, error } = await supabase.rpc('deduct_credits', {
+        user_id: user.id,
+        amount: amount
+      });
+
+      if (error) throw error;
+
+      setCreditBalance(data);
+      return true;
+    } catch (error: any) {
+      toast({
+        title: "Insufficient credits",
+        description: "Please add more credits to continue",
+        variant: "destructive"
+      });
+      return false;
+    } finally {
+      setIsDeductingCredits(false);
+    }
+  };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -47,6 +100,10 @@ const Index = () => {
 
   const processImage = async (file: File) => {
     try {
+      // Check and deduct credits first
+      const canProceed = await deductCredits(OCR_COST);
+      if (!canProceed) return;
+
       setIsProcessing(true);
       setSelectedImage(URL.createObjectURL(file));
       
@@ -57,7 +114,7 @@ const Index = () => {
       setExtractedText(text);
       toast({
         title: "Text extracted successfully",
-        description: "Your text is ready to be copied or edited",
+        description: `${OCR_COST} credits have been deducted`,
       });
     } catch (error) {
       toast({
@@ -120,8 +177,8 @@ const Index = () => {
             </p>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow">
-              <CreditCard className="w-5 h-5 text-blue-600" />
+            <div className={`flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow transition-all duration-300 ${isDeductingCredits ? 'scale-110' : ''}`}>
+              <CreditCard className={`w-5 h-5 ${creditBalance < 50 ? 'text-red-600' : 'text-blue-600'} ${isDeductingCredits ? 'animate-spin' : ''}`} />
               <span className="font-medium">{creditBalance} credits</span>
             </div>
             <Button variant="outline" onClick={handleSignOut}>

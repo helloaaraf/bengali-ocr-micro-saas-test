@@ -11,6 +11,8 @@ interface TextOutputProps {
   isProcessing: boolean;
 }
 
+const REFINE_COST = 15;
+
 const TextOutput = ({ text, isProcessing }: TextOutputProps) => {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
@@ -49,6 +51,14 @@ const TextOutput = ({ text, isProcessing }: TextOutputProps) => {
   const refineText = async () => {
     setIsRefining(true);
     try {
+      // Deduct credits first
+      const { data: deductData, error: deductError } = await supabase.rpc('deduct_credits', {
+        user_id: (await supabase.auth.getUser()).data.user?.id,
+        amount: REFINE_COST
+      });
+
+      if (deductError) throw deductError;
+
       const { data, error } = await supabase.functions.invoke('chat-completion', {
         body: {
           messages: [
@@ -65,13 +75,13 @@ const TextOutput = ({ text, isProcessing }: TextOutputProps) => {
       setRefinedText(data.choices[0].message.content);
       toast({
         title: "Text refined successfully",
-        description: "Your text has been improved",
+        description: `${REFINE_COST} credits have been deducted`,
         duration: 2000
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
-        title: "Error refining text",
-        description: "Please try again later",
+        title: error.message === 'Insufficient credits' ? 'Insufficient credits' : 'Error refining text',
+        description: error.message === 'Insufficient credits' ? 'Please add more credits to continue' : 'Please try again later',
         variant: "destructive",
         duration: 2000
       });
@@ -95,10 +105,11 @@ const TextOutput = ({ text, isProcessing }: TextOutputProps) => {
               size="sm"
               onClick={refineText}
               disabled={isRefining}
-              className="animate-fade-in"
+              className="group relative animate-fade-in"
             >
-              <Wand2 className={`h-4 w-4 ${isRefining ? 'animate-spin' : 'animate-pulse'}`} />
+              <Wand2 className={`h-4 w-4 transition-all duration-300 ${isRefining ? 'animate-spin' : 'group-hover:scale-110 group-hover:rotate-12'}`} />
               <span className="ml-2">{isRefining ? 'Refining...' : 'Refine'}</span>
+              <div className="absolute -inset-px bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 group-hover:opacity-20 rounded-md transition-opacity duration-300" />
             </Button>
           )}
           <Button
