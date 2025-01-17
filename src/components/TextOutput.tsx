@@ -64,7 +64,7 @@ const TextOutput = ({ text, isProcessing }: TextOutputProps) => {
           messages: [
             {
               role: 'user',
-              content: `please correct the spelling and remove all unnecessary symbols and words. please do not change the original text. Here's the text: ${text}`
+              content: `please correct the spelling and remove all unnecessary things. please do not change the original text. Here's the text: ${text}`
             }
           ]
         }
