@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Copy, Check, Download } from 'lucide-react';
+import { Copy, Check, Download, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { supabase } from '@/integrations/supabase/client';
 
 interface TextOutputProps {
   text: string;
@@ -13,9 +14,11 @@ interface TextOutputProps {
 const TextOutput = ({ text, isProcessing }: TextOutputProps) => {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
+  const [isRefining, setIsRefining] = useState(false);
+  const [refinedText, setRefinedText] = useState('');
 
   const copyToClipboard = async () => {
-    await navigator.clipboard.writeText(text);
+    await navigator.clipboard.writeText(refinedText || text);
     setCopied(true);
     toast({
       title: "Copied to clipboard",
@@ -25,7 +28,8 @@ const TextOutput = ({ text, isProcessing }: TextOutputProps) => {
   };
 
   const downloadText = () => {
-    const blob = new Blob([text], { type: 'text/plain' });
+    const contentToDownload = refinedText || text;
+    const blob = new Blob([contentToDownload], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -42,6 +46,42 @@ const TextOutput = ({ text, isProcessing }: TextOutputProps) => {
     });
   };
 
+  const refineText = async () => {
+    setIsRefining(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('chat-completion', {
+        body: {
+          messages: [
+            {
+              role: 'user',
+              content: `please correct the spelling and remove all unnecessary symbols and words. please do not change the original text. Here's the text: ${text}`
+            }
+          ]
+        }
+      });
+
+      if (error) throw error;
+
+      setRefinedText(data.choices[0].message.content);
+      toast({
+        title: "Text refined successfully",
+        description: "Your text has been improved",
+        duration: 2000
+      });
+    } catch (error) {
+      toast({
+        title: "Error refining text",
+        description: "Please try again later",
+        variant: "destructive",
+        duration: 2000
+      });
+    } finally {
+      setIsRefining(false);
+    }
+  };
+
+  const displayText = refinedText || text;
+
   return (
     <Card className="overflow-hidden">
       <div className="flex items-center justify-between p-6 border-b">
@@ -49,6 +89,18 @@ const TextOutput = ({ text, isProcessing }: TextOutputProps) => {
           Extracted Text
         </h2>
         <div className="flex items-center gap-2">
+          {text && !isProcessing && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={refineText}
+              disabled={isRefining}
+              className="animate-fade-in"
+            >
+              <Wand2 className={`h-4 w-4 ${isRefining ? 'animate-spin' : 'animate-pulse'}`} />
+              <span className="ml-2">{isRefining ? 'Refining...' : 'Refine'}</span>
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
@@ -84,9 +136,9 @@ const TextOutput = ({ text, isProcessing }: TextOutputProps) => {
 
         <TabsContent value="preview" className="mt-0">
           <div className="p-6 min-h-[400px] max-h-[600px] overflow-y-auto bg-white">
-            {text ? (
+            {displayText ? (
               <div className="prose prose-sm max-w-none">
-                {text.split('\n').map((paragraph, index) => (
+                {displayText.split('\n').map((paragraph, index) => (
                   <p key={index} className="mb-4 last:mb-0">
                     {paragraph || '\u00A0'}
                   </p>
@@ -106,9 +158,9 @@ const TextOutput = ({ text, isProcessing }: TextOutputProps) => {
 
         <TabsContent value="raw" className="mt-0">
           <div className="p-6 min-h-[400px] max-h-[600px] overflow-y-auto bg-gray-50">
-            {text ? (
+            {displayText ? (
               <pre className="font-mono text-sm whitespace-pre-wrap text-gray-800">
-                {text}
+                {displayText}
               </pre>
             ) : (
               <div className="h-full flex items-center justify-center">
