@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createWorker } from 'tesseract.js';
 import ImageUpload from '@/components/ImageUpload';
 import TextOutput from '@/components/TextOutput';
 import { useToast } from '@/components/ui/use-toast';
-import { Loader2, RefreshCcw, LogOut } from 'lucide-react';
+import { Loader2, RefreshCcw, LogOut, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,8 +13,28 @@ const Index = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [extractedText, setExtractedText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [creditBalance, setCreditBalance] = useState<number>(0);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('credit_balance')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile) {
+          setCreditBalance(profile.credit_balance);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -63,10 +83,16 @@ const Index = () => {
               Extract Bengali text from images with advanced optical character recognition
             </p>
           </div>
-          <Button variant="outline" onClick={handleSignOut}>
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
-          </Button>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow">
+              <CreditCard className="w-5 h-5 text-blue-600" />
+              <span className="font-medium">{creditBalance} credits</span>
+            </div>
+            <Button variant="outline" onClick={handleSignOut}>
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
         </header>
 
         <div className="grid lg:grid-cols-2 gap-12">
