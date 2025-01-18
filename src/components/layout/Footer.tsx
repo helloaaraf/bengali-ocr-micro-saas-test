@@ -2,20 +2,17 @@ import React from 'react';
 
 const Footer = () => {
   return (
-    <footer className="border-t bg-background">
-      <div className="container flex h-14 items-center justify-between py-4 md:h-16">
+    <footer className="bg-background py-4">
+      <div className="container flex items-center justify-between px-4">
         <p className="text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Bengali OCR. All rights reserved.
+          © {new Date().getFullYear()} Bengali OCR
         </p>
-        <nav className="flex items-center space-x-4 text-sm text-muted-foreground">
-          <a href="#" className="hover:underline">
+        <nav className="flex items-center gap-4">
+          <a href="#" className="text-sm text-muted-foreground hover:text-primary">
             Terms
           </a>
-          <a href="#" className="hover:underline">
+          <a href="#" className="text-sm text-muted-foreground hover:text-primary">
             Privacy
-          </a>
-          <a href="#" className="hover:underline">
-            Contact
           </a>
         </nav>
       </div>
