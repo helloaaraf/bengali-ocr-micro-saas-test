@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      credit_packages: {
+        Row: {
+          created_at: string
+          credits: number
+          description: string | null
+          discount_percentage: number | null
+          features: Json | null
+          id: string
+          is_popular: boolean | null
+          name: string
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          credits: number
+          description?: string | null
+          discount_percentage?: number | null
+          features?: Json | null
+          id?: string
+          is_popular?: boolean | null
+          name: string
+          price: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          credits?: number
+          description?: string | null
+          discount_percentage?: number | null
+          features?: Json | null
+          id?: string
+          is_popular?: boolean | null
+          name?: string
+          price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       credit_transactions: {
         Row: {
           amount: number
@@ -50,12 +89,46 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          read: boolean | null
+          title: string
+          type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          read?: boolean | null
+          title: string
+          type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          title?: string
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           created_at: string
           credit_balance: number
           id: string
+          phone_number: string | null
           username: string | null
         }
         Insert: {
@@ -63,6 +136,7 @@ export type Database = {
           created_at?: string
           credit_balance?: number
           id: string
+          phone_number?: string | null
           username?: string | null
         }
         Update: {
@@ -70,6 +144,7 @@ export type Database = {
           created_at?: string
           credit_balance?: number
           id?: string
+          phone_number?: string | null
           username?: string | null
         }
         Relationships: []
@@ -111,12 +186,30 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_notification: {
+        Args: {
+          p_user_id: string
+          p_title: string
+          p_message: string
+          p_type: string
+        }
+        Returns: string
+      }
       deduct_credits: {
         Args: {
           user_id: string
           amount: number
         }
         Returns: number
+      }
+      process_credit_purchase: {
+        Args: {
+          p_user_id: string
+          p_package_id: string
+          p_payment_id: string
+          p_payment_method: string
+        }
+        Returns: Json
       }
     }
     Enums: {
