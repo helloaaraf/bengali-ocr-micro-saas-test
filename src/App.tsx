@@ -2,12 +2,23 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Session } from '@supabase/supabase-js';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
 import CreditDashboard from '@/pages/credits/Dashboard';
 import CreditPurchase from '@/pages/credits/Purchase';
 import TransactionHistory from '@/pages/credits/History';
 import UsageStatistics from '@/pages/credits/Usage';
+
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => {
   const [session, setSession] = useState<Session | null>(null);
@@ -37,34 +48,36 @@ const App = () => {
   }
 
   return (
-    <Router>
-      <Routes>
-        <Route
-          path="/"
-          element={session ? <Index /> : <Navigate to="/auth" replace />}
-        />
-        <Route
-          path="/auth"
-          element={!session ? <Auth /> : <Navigate to="/" replace />}
-        />
-        <Route
-          path="/credits"
-          element={session ? <CreditDashboard /> : <Navigate to="/auth" replace />}
-        />
-        <Route
-          path="/credits/purchase"
-          element={session ? <CreditPurchase /> : <Navigate to="/auth" replace />}
-        />
-        <Route
-          path="/credits/history"
-          element={session ? <TransactionHistory /> : <Navigate to="/auth" replace />}
-        />
-        <Route
-          path="/credits/usage"
-          element={session ? <UsageStatistics /> : <Navigate to="/auth" replace />}
-        />
-      </Routes>
-    </Router>
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <Routes>
+          <Route
+            path="/"
+            element={session ? <Index /> : <Navigate to="/auth" replace />}
+          />
+          <Route
+            path="/auth"
+            element={!session ? <Auth /> : <Navigate to="/" replace />}
+          />
+          <Route
+            path="/credits"
+            element={session ? <CreditDashboard /> : <Navigate to="/auth" replace />}
+          />
+          <Route
+            path="/credits/purchase"
+            element={session ? <CreditPurchase /> : <Navigate to="/auth" replace />}
+          />
+          <Route
+            path="/credits/history"
+            element={session ? <TransactionHistory /> : <Navigate to="/auth" replace />}
+          />
+          <Route
+            path="/credits/usage"
+            element={session ? <UsageStatistics /> : <Navigate to="/auth" replace />}
+          />
+        </Routes>
+      </Router>
+    </QueryClientProvider>
   );
 };
 
