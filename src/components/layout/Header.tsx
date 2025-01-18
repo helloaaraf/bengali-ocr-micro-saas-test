@@ -68,6 +68,14 @@ const Header = () => {
             <CreditCard className={`w-5 h-5 ${profile?.credit_balance < 50 ? 'text-red-600' : 'text-blue-600'} ${isDeductingCredits ? 'animate-spin' : ''}`} />
             <span className="font-medium">{profile?.credit_balance || 0} ক্রেডিট</span>
           </div>
+
+          <Button 
+            variant="default"
+            onClick={() => navigate('/credits/purchase')}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            টপ-আপ
+          </Button>
           
           <Popover>
             <PopoverTrigger asChild>
@@ -96,12 +104,4 @@ const Header = () => {
           </Popover>
           
           <Button variant="ghost" size="icon" onClick={handleSignOut}>
-            <LogOut className="h-5 w-5" />
-          </Button>
-        </div>
-      </div>
-    </header>
-  );
-};
-
-export default Header;
+            <LogOut cl
