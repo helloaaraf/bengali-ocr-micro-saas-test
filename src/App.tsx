@@ -4,6 +4,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { Session } from '@supabase/supabase-js';
 import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
+import CreditDashboard from '@/pages/credits/Dashboard';
+import CreditPurchase from '@/pages/credits/Purchase';
+import TransactionHistory from '@/pages/credits/History';
+import UsageStatistics from '@/pages/credits/Usage';
 
 const App = () => {
   const [session, setSession] = useState<Session | null>(null);
@@ -42,6 +46,22 @@ const App = () => {
         <Route
           path="/auth"
           element={!session ? <Auth /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/credits"
+          element={session ? <CreditDashboard /> : <Navigate to="/auth" replace />}
+        />
+        <Route
+          path="/credits/purchase"
+          element={session ? <CreditPurchase /> : <Navigate to="/auth" replace />}
+        />
+        <Route
+          path="/credits/history"
+          element={session ? <TransactionHistory /> : <Navigate to="/auth" replace />}
+        />
+        <Route
+          path="/credits/usage"
+          element={session ? <UsageStatistics /> : <Navigate to="/auth" replace />}
         />
       </Routes>
     </Router>
