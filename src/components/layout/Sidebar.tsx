@@ -28,11 +28,11 @@ const AppSidebar = () => {
   };
 
   const menuItems = [
-    { title: 'হোম', path: '/', icon: Home },
-    { title: 'প্রোফাইল', path: '/profile', icon: User },
-    { title: 'ক্রেডিট', path: '/credits', icon: CreditCard },
-    { title: 'ইতিহাস', path: '/credits/history', icon: History },
-    { title: 'ব্যবহার', path: '/credits/usage', icon: BarChart },
+    { title: 'Home', path: '/', icon: Home },
+    { title: 'Profile', path: '/profile', icon: User },
+    { title: 'Credits', path: '/credits', icon: CreditCard },
+    { title: 'History', path: '/credits/history', icon: History },
+    { title: 'Usage', path: '/credits/usage', icon: BarChart },
   ];
 
   return (
@@ -41,7 +41,7 @@ const AppSidebar = () => {
         <div className="p-4">
           <div className="flex items-center gap-2 text-white mb-8">
             <FileText className="h-8 w-8" />
-            <span className="text-lg font-semibold transition-opacity duration-200">বাংলা OCR</span>
+            <span className="text-lg font-semibold transition-opacity duration-200">Bengali OCR</span>
           </div>
           <SidebarMenu>
             {menuItems.map((item) => (
@@ -60,12 +60,12 @@ const AppSidebar = () => {
             ))}
             <SidebarMenuItem>
               <SidebarMenuButton
-                tooltip="সাইন আউট"
+                tooltip="Sign out"
                 className="w-full justify-start gap-4 text-white hover:bg-white/10 mt-auto"
                 onClick={handleSignOut}
               >
                 <LogOut className="h-5 w-5" />
-                <span>সাইন আউট</span>
+                <span>Sign out</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
