@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Menu, Bell, LogOut, CreditCard } from 'lucide-react';
+import { Menu, Bell, LogOut, CreditCard, Check, X } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,6 +14,22 @@ import {
 const Header = () => {
   const navigate = useNavigate();
   const [isDeductingCredits, setIsDeductingCredits] = useState(false);
+  const [notifications, setNotifications] = useState([
+    {
+      id: 1,
+      title: 'ক্রেডিট যোগ করা হয়েছে',
+      message: 'আপনার অ্যাকাউন্টে 100 ক্রেডিট যোগ করা হয়েছে',
+      time: '5 মিনিট আগে',
+      read: false
+    },
+    {
+      id: 2,
+      title: 'OCR সম্পন্ন',
+      message: 'আপনার ছবি সফলভাবে প্রক্রিয়া করা হয়েছে',
+      time: '1 ঘন্টা আগে',
+      read: false
+    }
+  ]);
 
   const { data: profile } = useQuery({
     queryKey: ['profile'],
@@ -36,21 +52,22 @@ const Header = () => {
     navigate('/auth');
   };
 
-  // Static notifications for demo
-  const notifications = [
-    {
-      id: 1,
-      title: 'ক্রেডিট যোগ করা হয়েছে',
-      message: 'আপনার অ্যাকাউন্টে 100 ক্রেডিট যোগ করা হয়েছে',
-      time: '5 মিনিট আগে'
-    },
-    {
-      id: 2,
-      title: 'OCR সম্পন্ন',
-      message: 'আপনার ছবি সফলভাবে প্রক্রিয়া করা হয়েছে',
-      time: '1 ঘন্টা আগে'
-    }
-  ];
+  const markAllAsRead = () => {
+    setNotifications(prevNotifications =>
+      prevNotifications.map(notification => ({
+        ...notification,
+        read: true
+      }))
+    );
+  };
+
+  const dismissNotification = (id: number) => {
+    setNotifications(prevNotifications =>
+      prevNotifications.filter(notification => notification.id !== id)
+    );
+  };
+
+  const unreadCount = notifications.filter(notification => !notification.read).length;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -85,31 +102,58 @@ const Header = () => {
                 className="relative"
               >
                 <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] font-medium text-white flex items-center justify-center">
-                  {notifications.length}
-                </span>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] font-medium text-white flex items-center justify-center">
+                    {unreadCount}
+                  </span>
+                )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 p-0">
-              <div className="p-4 space-y-4">
-                {notifications.map((notification) => (
-                  <div key={notification.id} className="border-b pb-3 last:border-0 last:pb-0">
-                    <h4 className="font-semibold">{notification.title}</h4>
-                    <p className="text-sm text-muted-foreground">{notification.message}</p>
-                    <span className="text-xs text-muted-foreground">{notification.time}</span>
+            <PopoverContent className="w-80 p-0 bg-white shadow-lg border rounded-lg">
+              <div className="flex items-center justify-between p-4 border-b">
+                <h3 className="font-semibold">নোটিফিকেশন</h3>
+                {notifications.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={markAllAsRead}
+                    className="text-sm text-blue-600 hover:text-blue-700"
+                  >
+                    <Check className="w-4 h-4 mr-1" />
+                    সব পড়া হয়েছে
+                  </Button>
+                )}
+              </div>
+              <div className="divide-y divide-gray-100">
+                {notifications.length === 0 ? (
+                  <div className="p-4 text-center text-gray-500">
+                    কোন নোটিফিকেশন নেই
                   </div>
-                ))}
+                ) : (
+                  notifications.map((notification) => (
+                    <div 
+                      key={notification.id} 
+                      className={`p-4 relative hover:bg-gray-50 transition-colors ${
+                        notification.read ? 'opacity-75' : ''
+                      }`}
+                    >
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => dismissNotification(notification.id)}
+                        className="absolute top-2 right-2 h-6 w-6 hover:bg-gray-200"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                      <h4 className="font-semibold mb-1">{notification.title}</h4>
+                      <p className="text-sm text-gray-600 mb-1">{notification.message}</p>
+                      <span className="text-xs text-gray-400">{notification.time}</span>
+                    </div>
+                  ))
+                )}
               </div>
             </PopoverContent>
           </Popover>
           
           <Button variant="ghost" size="icon" onClick={handleSignOut}>
-            <LogOut className="h-5 w-5" />
-          </Button>
-        </div>
-      </div>
-    </header>
-  );
-};
-
-export default Header;
+            <LogOut cl
