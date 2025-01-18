@@ -44,12 +44,11 @@ const Profile = () => {
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto">
         <div className="md:grid md:grid-cols-[240px_1fr]">
-          {/* Mobile-first layout */}
           <div className="md:border-r">
             <ProfileHeader
               username={profile.username || 'User'}
               avatarUrl={profile.avatar_url}
-              createdAt={new Date(profile.created_at)}
+              createdAt={profile.created_at}
             />
             <QuickStats
               credits={profile.credit_balance}
@@ -62,10 +61,8 @@ const Profile = () => {
             />
           </div>
           
-          {/* Main content area */}
           <main className="p-4">
             <h2 className="text-2xl font-semibold mb-4">{activeSection}</h2>
-            {/* Content sections will be implemented separately */}
             <p className="text-muted-foreground">Content for {activeSection}</p>
           </main>
         </div>
