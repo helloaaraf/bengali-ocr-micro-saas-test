@@ -40,15 +40,15 @@ const Header = () => {
   const notifications = [
     {
       id: 1,
-      title: 'Credits Added',
-      message: '100 credits have been added to your account',
-      time: '5 minutes ago'
+      title: 'ক্রেডিট যোগ করা হয়েছে',
+      message: 'আপনার অ্যাকাউন্টে 100 ক্রেডিট যোগ করা হয়েছে',
+      time: '5 মিনিট আগে'
     },
     {
       id: 2,
-      title: 'OCR Complete',
-      message: 'Your image has been processed successfully',
-      time: '1 hour ago'
+      title: 'OCR সম্পন্ন',
+      message: 'আপনার ছবি সফলভাবে প্রক্রিয়া করা হয়েছে',
+      time: '1 ঘন্টা আগে'
     }
   ];
 
@@ -59,14 +59,14 @@ const Header = () => {
           <SidebarTrigger className="md:hidden" />
           <div className="hidden md:flex items-center gap-2">
             <h2 className="text-2xl font-bold">
-              Welcome back, {profile?.username || 'User'}!
+              স্বাগতম, {profile?.username || 'ব্যবহারকারী'}!
             </h2>
           </div>
         </div>
         <div className="flex items-center gap-4">
           <div className={`flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow transition-all duration-300 ${isDeductingCredits ? 'scale-110' : ''}`}>
             <CreditCard className={`w-5 h-5 ${profile?.credit_balance < 50 ? 'text-red-600' : 'text-blue-600'} ${isDeductingCredits ? 'animate-spin' : ''}`} />
-            <span className="font-medium">{profile?.credit_balance || 0} credits</span>
+            <span className="font-medium">{profile?.credit_balance || 0} ক্রেডিট</span>
           </div>
           
           <Popover>
