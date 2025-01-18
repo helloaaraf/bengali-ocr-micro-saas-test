@@ -83,8 +83,8 @@ const Index = () => {
       return true;
     } catch (error: any) {
       toast({
-        title: "Insufficient credits",
-        description: "Please add more credits to continue",
+        title: "অপর্যাপ্ত ক্রেডিট",
+        description: "অনুগ্রহ করে আরও ক্রেডিট যোগ করুন",
         variant: "destructive"
       });
       return false;
@@ -102,7 +102,14 @@ const Index = () => {
     try {
       // Check and deduct credits first
       const canProceed = await deductCredits(OCR_COST);
-      if (!canProceed) return;
+      if (!canProceed) {
+        toast({
+          title: "অপর্যাপ্ত ক্রেডিট",
+          description: "অনুগ্রহ করে আরও ক্রেডিট যোগ করুন",
+          variant: "destructive"
+        });
+        return;
+      }
 
       setIsProcessing(true);
       setSelectedImage(URL.createObjectURL(file));
@@ -113,13 +120,13 @@ const Index = () => {
 
       setExtractedText(text);
       toast({
-        title: "Text extracted successfully",
-        description: `${OCR_COST} credits have been deducted`,
+        title: "টেক্সট সফলভাবে নির্গত হয়েছে",
+        description: `${OCR_COST} ক্রেডিট কাটা হয়েছে`,
       });
     } catch (error) {
       toast({
-        title: "Error processing image",
-        description: "Please try again with a different image",
+        title: "ছবি প্রক্রিয়াকরণে ত্রুটি",
+        description: "অনুগ্রহ করে অন্য ছবি দিয়ে চেষ্টা করুন",
         variant: "destructive"
       });
     } finally {
@@ -155,8 +162,8 @@ const Index = () => {
       setChatHistory([...updatedHistory, assistantMessage]);
     } catch (error) {
       toast({
-        title: "Error sending message",
-        description: "Please try again later",
+        title: "বার্তা পাঠাতে ত্রুটি",
+        description: "অনুগ্রহ করে পরে আবার চেষ্টা করুন",
         variant: "destructive"
       });
     } finally {
@@ -169,17 +176,17 @@ const Index = () => {
       <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
         <header className="mb-16">
           <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">
-            Bengali OCR
+            বাংলা OCR
           </h1>
           <p className="text-xl text-gray-600">
-            Extract Bengali text from images with advanced optical character recognition
+            উন্নত অপটিক্যাল ক্যারেক্টার রিকগনিশন দিয়ে ছবি থেকে বাংলা টেক্সট নির্গত করুন
           </p>
         </header>
 
         <div className="grid lg:grid-cols-2 gap-12">
           <Card className="p-6 space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-semibold text-gray-900">Image Input</h2>
+              <h2 className="text-2xl font-semibold text-gray-900">ছবি ইনপুট</h2>
               {selectedImage && (
                 <Button
                   variant="ghost"
@@ -188,7 +195,7 @@ const Index = () => {
                   className="text-gray-500 hover:text-gray-700"
                 >
                   <RefreshCcw className="w-4 h-4 mr-2" />
-                  Reset
+                  রিসেট
                 </Button>
               )}
             </div>
@@ -199,13 +206,13 @@ const Index = () => {
               <div className="relative rounded-xl overflow-hidden border bg-white shadow-sm">
                 <img 
                   src={selectedImage} 
-                  alt="Selected" 
+                  alt="নির্বাচিত ছবি" 
                   className="w-full h-auto object-contain max-h-[400px]"
                 />
                 {isProcessing && (
                   <div className="absolute inset-0 backdrop-blur-sm bg-black/30 flex flex-col items-center justify-center gap-4">
                     <Loader2 className="w-12 h-12 text-white animate-spin" />
-                    <p className="text-white font-medium">Extracting text...</p>
+                    <p className="text-white font-medium">টেক্সট নির্গত করা হচ্ছে...</p>
                   </div>
                 )}
               </div>
@@ -216,7 +223,7 @@ const Index = () => {
             <TextOutput text={extractedText} isProcessing={isProcessing} />
             
             <Card className="p-6">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-6">Chat</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-6">চ্যাট</h2>
               <div className="space-y-4 mb-4 max-h-[300px] overflow-y-auto">
                 {chatHistory.map((msg, index) => (
                   <div
@@ -235,7 +242,7 @@ const Index = () => {
                 <Input
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Type your message..."
+                  placeholder="আপনার বার্তা টাইপ করুন..."
                   onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
                   disabled={isSending}
                 />
