@@ -167,25 +167,13 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
-        <header className="flex justify-between items-center mb-16">
-          <div>
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">
-              Bengali OCR
-            </h1>
-            <p className="text-xl text-gray-600">
-              Extract Bengali text from images with advanced optical character recognition
-            </p>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className={`flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow transition-all duration-300 ${isDeductingCredits ? 'scale-110' : ''}`}>
-              <CreditCard className={`w-5 h-5 ${creditBalance < 50 ? 'text-red-600' : 'text-blue-600'} ${isDeductingCredits ? 'animate-spin' : ''}`} />
-              <span className="font-medium">{creditBalance} credits</span>
-            </div>
-            <Button variant="outline" onClick={handleSignOut}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
-            </Button>
-          </div>
+        <header className="mb-16">
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">
+            Bengali OCR
+          </h1>
+          <p className="text-xl text-gray-600">
+            Extract Bengali text from images with advanced optical character recognition
+          </p>
         </header>
 
         <div className="grid lg:grid-cols-2 gap-12">
