@@ -48,7 +48,7 @@ const Profile = () => {
             <ProfileHeader
               username={profile.username || 'User'}
               avatarUrl={profile.avatar_url}
-              createdAt={profile.created_at}
+              createdAt={profile.created_at || new Date().toISOString()}
             />
             <QuickStats
               credits={profile.credit_balance}

@@ -2,7 +2,7 @@ import React from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Camera, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { formatDistance, parseISO } from 'date-fns';
+import { formatDistance, parseISO, isValid } from 'date-fns';
 
 interface ProfileHeaderProps {
   username: string;
@@ -11,8 +11,19 @@ interface ProfileHeaderProps {
 }
 
 const ProfileHeader = ({ username, avatarUrl, createdAt }: ProfileHeaderProps) => {
-  // Convert string date to Date object if necessary
-  const createdDate = typeof createdAt === 'string' ? parseISO(createdAt) : createdAt;
+  // Convert string date to Date object if necessary and validate
+  const getFormattedDate = () => {
+    try {
+      const date = typeof createdAt === 'string' ? parseISO(createdAt) : createdAt;
+      if (!isValid(date)) {
+        return 'Recently joined';
+      }
+      return `Joined ${formatDistance(date, new Date(), { addSuffix: true })}`;
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Recently joined';
+    }
+  };
 
   return (
     <div className="relative p-4 text-center space-y-4">
@@ -33,7 +44,7 @@ const ProfileHeader = ({ username, avatarUrl, createdAt }: ProfileHeaderProps) =
         <h2 className="text-2xl font-bold">{username}</h2>
         <p className="text-sm text-muted-foreground flex items-center justify-center gap-1">
           <Calendar className="h-4 w-4" />
-          Joined {formatDistance(createdDate, new Date(), { addSuffix: true })}
+          {getFormattedDate()}
         </p>
       </div>
     </div>
