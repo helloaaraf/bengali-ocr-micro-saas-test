@@ -5,6 +5,7 @@ import { Session } from '@supabase/supabase-js';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
+import Profile from '@/pages/Profile';
 import CreditDashboard from '@/pages/credits/Dashboard';
 import CreditPurchase from '@/pages/credits/Purchase';
 import TransactionHistory from '@/pages/credits/History';
@@ -58,6 +59,10 @@ const App = () => {
           <Route
             path="/auth"
             element={!session ? <Auth /> : <Navigate to="/" replace />}
+          />
+          <Route
+            path="/profile"
+            element={session ? <Profile /> : <Navigate to="/auth" replace />}
           />
           <Route
             path="/credits"
