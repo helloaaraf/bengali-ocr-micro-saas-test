@@ -15,7 +15,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         <AppSidebar />
         <div className="flex-1 flex flex-col">
           <Header />
-          <main className="flex-1 container py-6">
+          <main className="flex-1 container py-6 mb-16">
             <div className="max-w-7xl mx-auto">
               {children}
             </div>

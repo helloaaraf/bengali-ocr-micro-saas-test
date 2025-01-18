@@ -11,7 +11,6 @@ import {
   Home,
   CreditCard,
   User,
-  Settings,
   FileText,
   History,
   BarChart,
@@ -42,12 +41,13 @@ const AppSidebar = () => {
         <div className="p-4">
           <div className="flex items-center gap-2 text-white mb-8">
             <FileText className="h-8 w-8" />
-            <span className="text-lg font-semibold">Bengali OCR</span>
+            <span className="text-lg font-semibold transition-opacity duration-200">Bengali OCR</span>
           </div>
           <SidebarMenu>
             {menuItems.map((item) => (
               <SidebarMenuItem key={item.path}>
                 <SidebarMenuButton
+                  tooltip={item.title}
                   className={`w-full justify-start gap-4 text-white hover:bg-white/10 ${
                     location.pathname === item.path ? 'bg-white/20' : ''
                   }`}
@@ -60,6 +60,7 @@ const AppSidebar = () => {
             ))}
             <SidebarMenuItem>
               <SidebarMenuButton
+                tooltip="Sign out"
                 className="w-full justify-start gap-4 text-white hover:bg-white/10 mt-auto"
                 onClick={handleSignOut}
               >
