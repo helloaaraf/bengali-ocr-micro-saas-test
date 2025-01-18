@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { supabase } from '@/integrations/supabase/client';
 import { Session } from '@supabase/supabase-js';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import MainLayout from '@/components/layout/MainLayout';
 import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
 import Profile from '@/pages/Profile';
@@ -11,7 +12,6 @@ import CreditPurchase from '@/pages/credits/Purchase';
 import TransactionHistory from '@/pages/credits/History';
 import UsageStatistics from '@/pages/credits/Usage';
 
-// Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -53,32 +53,27 @@ const App = () => {
       <Router>
         <Routes>
           <Route
-            path="/"
-            element={session ? <Index /> : <Navigate to="/auth" replace />}
-          />
-          <Route
             path="/auth"
             element={!session ? <Auth /> : <Navigate to="/" replace />}
           />
           <Route
-            path="/profile"
-            element={session ? <Profile /> : <Navigate to="/auth" replace />}
-          />
-          <Route
-            path="/credits"
-            element={session ? <CreditDashboard /> : <Navigate to="/auth" replace />}
-          />
-          <Route
-            path="/credits/purchase"
-            element={session ? <CreditPurchase /> : <Navigate to="/auth" replace />}
-          />
-          <Route
-            path="/credits/history"
-            element={session ? <TransactionHistory /> : <Navigate to="/auth" replace />}
-          />
-          <Route
-            path="/credits/usage"
-            element={session ? <UsageStatistics /> : <Navigate to="/auth" replace />}
+            path="/*"
+            element={
+              session ? (
+                <MainLayout>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/credits" element={<CreditDashboard />} />
+                    <Route path="/credits/purchase" element={<CreditPurchase />} />
+                    <Route path="/credits/history" element={<TransactionHistory />} />
+                    <Route path="/credits/usage" element={<UsageStatistics />} />
+                  </Routes>
+                </MainLayout>
+              ) : (
+                <Navigate to="/auth" replace />
+              )
+            }
           />
         </Routes>
       </Router>
