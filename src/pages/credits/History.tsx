@@ -104,7 +104,7 @@ const TransactionHistory = () => {
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-8">লেনদেনের ইতিহাস</h1>
+      <h1 className="text-3xl font-bold mb-8">ট্রান্সেকশন ডিটেলস</h1>
       
       <Card className="overflow-hidden">
         <div className="overflow-x-auto">
