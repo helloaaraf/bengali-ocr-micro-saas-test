@@ -7,32 +7,55 @@ const corsHeaders = {
 }
 
 async function getAuthToken() {
-  const response = await fetch('https://tokenized.sandbox.bka.sh/v1.2.0-beta/tokenized/checkout/token/grant', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-      username: Deno.env.get('BKASH_USERNAME') || '',
-      password: Deno.env.get('BKASH_PASSWORD') || '',
-    },
-    body: JSON.stringify({
-      app_key: Deno.env.get('BKASH_APP_KEY'),
-      app_secret: Deno.env.get('BKASH_APP_SECRET'),
-    }),
-  })
+  try {
+    const response = await fetch('https://tokenized.sandbox.bka.sh/v1.2.0-beta/tokenized/checkout/token/grant', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        username: Deno.env.get('BKASH_USERNAME') || '',
+        password: Deno.env.get('BKASH_PASSWORD') || '',
+      },
+      body: JSON.stringify({
+        app_key: Deno.env.get('BKASH_APP_KEY'),
+        app_secret: Deno.env.get('BKASH_APP_SECRET'),
+      }),
+    })
 
-  const data = await response.json()
-  console.log('Auth token response:', data)
-  return data.id_token
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const data = await response.json()
+    console.log('Auth token response:', data)
+    
+    if (!data.id_token) {
+      throw new Error('No id_token received from bKash')
+    }
+    
+    return data.id_token
+  } catch (error) {
+    console.error('Error getting auth token:', error)
+    throw error
+  }
 }
 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response(null, { 
+      headers: {
+        ...corsHeaders,
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      }
+    })
   }
 
   try {
+    if (req.method !== 'POST') {
+      throw new Error('Method not allowed')
+    }
+
     // Parse the request body
     const { packageId, userId } = await req.json()
     console.log('Received request:', { packageId, userId })
@@ -84,8 +107,16 @@ serve(async (req) => {
       }),
     })
 
+    if (!createPaymentResponse.ok) {
+      throw new Error(`HTTP error! status: ${createPaymentResponse.status}`)
+    }
+
     const paymentData = await createPaymentResponse.json()
     console.log('Payment creation response:', paymentData)
+
+    if (!paymentData.bkashURL) {
+      throw new Error('No bkashURL received in payment response')
+    }
 
     return new Response(
       JSON.stringify({
@@ -94,6 +125,7 @@ serve(async (req) => {
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
       }
     )
   } catch (error) {
