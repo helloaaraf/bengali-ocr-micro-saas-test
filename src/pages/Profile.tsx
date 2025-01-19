@@ -1,12 +1,23 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import ProfileHeader from '@/components/profile/ProfileHeader';
-import QuickStats from '@/components/profile/QuickStats';
-import ProfileNavigation from '@/components/profile/ProfileNavigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/components/ui/use-toast';
+import { Loader2 } from 'lucide-react';
 
 const Profile = () => {
-  const [activeSection, setActiveSection] = useState('Personal Info');
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    username: '',
+    website: '',
+    bio: '',
+    avatar_url: '',
+  });
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['profile'],
@@ -20,52 +31,152 @@ const Profile = () => {
         .eq('id', user.id)
         .maybeSingle();
 
+      if (profile) {
+        setFormData({
+          username: profile.username || '',
+          website: profile.website || '',
+          bio: profile.bio || '',
+          avatar_url: profile.avatar_url || '',
+        });
+      }
+
       return profile;
     },
   });
 
+  const updateProfile = useMutation({
+    mutationFn: async (updatedProfile: typeof formData) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('No user found');
+
+      const { error } = await supabase
+        .from('profiles')
+        .update(updatedProfile)
+        .eq('id', user.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      toast({
+        title: 'Profile updated',
+        description: 'Your profile has been updated successfully.',
+      });
+      setIsEditing(false);
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: 'Failed to update profile. Please try again.',
+        variant: 'destructive',
+      });
+      console.error('Error updating profile:', error);
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateProfile.mutate(formData);
+  };
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (!profile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Profile not found</p>
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto">
-        <div className="md:grid md:grid-cols-[240px_1fr]">
-          <div className="md:border-r">
-            <ProfileHeader
-              username={profile.username || 'User'}
-              avatarUrl={profile.avatar_url}
-              createdAt={profile.created_at || new Date().toISOString()}
-            />
-            <QuickStats
-              credits={profile.credit_balance}
-              documentsProcessed={0}
-              usagePercentage={0}
-            />
-            <ProfileNavigation
-              activeSection={activeSection}
-              onSectionChange={setActiveSection}
-            />
-          </div>
-          
-          <main className="p-4">
-            <h2 className="text-2xl font-semibold mb-4">{activeSection}</h2>
-            <p className="text-muted-foreground">Content for {activeSection}</p>
-          </main>
+    <div className="container max-w-4xl py-8">
+      <div className="bg-white rounded-lg shadow-sm border p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-semibold">Profile Settings</h1>
+          {!isEditing && (
+            <Button onClick={() => setIsEditing(true)}>
+              Edit Profile
+            </Button>
+          )}
         </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                disabled={!isEditing}
+                placeholder="Enter your username"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="website">Website</Label>
+              <Input
+                id="website"
+                name="website"
+                value={formData.website}
+                onChange={handleChange}
+                disabled={!isEditing}
+                placeholder="Enter your website URL"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="bio">Bio</Label>
+              <Textarea
+                id="bio"
+                name="bio"
+                value={formData.bio}
+                onChange={handleChange}
+                disabled={!isEditing}
+                placeholder="Tell us about yourself"
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
+
+          {isEditing && (
+            <div className="flex gap-4">
+              <Button
+                type="submit"
+                disabled={updateProfile.isPending}
+                className="flex-1"
+              >
+                {updateProfile.isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Save Changes
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setIsEditing(false);
+                  setFormData({
+                    username: profile?.username || '',
+                    website: profile?.website || '',
+                    bio: profile?.bio || '',
+                    avatar_url: profile?.avatar_url || '',
+                  });
+                }}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+            </div>
+          )}
+        </form>
       </div>
     </div>
   );
