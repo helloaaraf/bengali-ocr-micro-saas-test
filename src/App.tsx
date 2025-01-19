@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { supabase } from '@/integrations/supabase/client';
 import { Session } from '@supabase/supabase-js';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
 import MainLayout from '@/components/layout/MainLayout';
 import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
@@ -24,21 +25,50 @@ const queryClient = new QueryClient({
 const App = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Error fetching session:', error);
+        toast({
+          title: 'Session Error',
+          description: 'Please try logging in again.',
+          variant: 'destructive',
+        });
+      }
       setSession(session);
       setLoading(false);
     });
 
+    // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (_event === 'SIGNED_OUT' || _event === 'USER_DELETED') {
+        // Clear any application cache/state
+        queryClient.clear();
+      }
+      
       setSession(session);
+      
+      if (_event === 'TOKEN_REFRESHED') {
+        console.log('Session token refreshed');
+      }
+      
+      if (_event === 'SIGNED_IN') {
+        toast({
+          title: 'Signed in successfully',
+          description: 'Welcome back!',
+        });
+      }
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [toast]);
 
   if (loading) {
     return (
