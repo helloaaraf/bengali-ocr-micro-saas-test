@@ -1,4 +1,4 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
 const corsHeaders = {
@@ -6,52 +6,41 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-interface BkashConfig {
-  grantTokenUrl: string
-  createPaymentUrl: string
-  executePaymentUrl: string
-  username: string
-  password: string
-  appKey: string
-  appSecret: string
-}
-
-const config: BkashConfig = {
-  grantTokenUrl: 'https://tokenized.sandbox.bka.sh/v1.2.0-beta/tokenized/checkout/token/grant',
-  createPaymentUrl: 'https://tokenized.sandbox.bka.sh/v1.2.0-beta/tokenized/checkout/create',
-  executePaymentUrl: 'https://tokenized.sandbox.bka.sh/v1.2.0-beta/tokenized/checkout/execute',
-  username: Deno.env.get('BKASH_USERNAME') || '',
-  password: Deno.env.get('BKASH_PASSWORD') || '',
-  appKey: Deno.env.get('BKASH_APP_KEY') || '',
-  appSecret: Deno.env.get('BKASH_APP_SECRET') || '',
-}
-
 async function getAuthToken() {
-  const response = await fetch(config.grantTokenUrl, {
+  const response = await fetch('https://tokenized.sandbox.bka.sh/v1.2.0-beta/tokenized/checkout/token/grant', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Accept: 'application/json',
-      username: config.username,
-      password: config.password,
+      username: Deno.env.get('BKASH_USERNAME') || '',
+      password: Deno.env.get('BKASH_PASSWORD') || '',
     },
     body: JSON.stringify({
-      app_key: config.appKey,
-      app_secret: config.appSecret,
+      app_key: Deno.env.get('BKASH_APP_KEY'),
+      app_secret: Deno.env.get('BKASH_APP_SECRET'),
     }),
   })
 
   const data = await response.json()
+  console.log('Auth token response:', data)
   return data.id_token
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
+    // Parse the request body
     const { packageId, userId } = await req.json()
+    console.log('Received request:', { packageId, userId })
+
+    if (!packageId || !userId) {
+      throw new Error('Package ID and User ID are required')
+    }
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -65,20 +54,24 @@ serve(async (req) => {
       .single()
 
     if (packageError || !packageData) {
+      console.error('Package error:', packageError)
       throw new Error('Package not found')
     }
 
+    console.log('Package data:', packageData)
+
     // Get auth token
     const idToken = await getAuthToken()
+    console.log('Got auth token')
 
     // Create payment
-    const createPaymentResponse = await fetch(config.createPaymentUrl, {
+    const createPaymentResponse = await fetch('https://tokenized.sandbox.bka.sh/v1.2.0-beta/tokenized/checkout/create', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         authorization: idToken,
-        'x-app-key': config.appKey,
+        'x-app-key': Deno.env.get('BKASH_APP_KEY') || '',
       },
       body: JSON.stringify({
         mode: '0011',
@@ -92,6 +85,7 @@ serve(async (req) => {
     })
 
     const paymentData = await createPaymentResponse.json()
+    console.log('Payment creation response:', paymentData)
 
     return new Response(
       JSON.stringify({
@@ -103,6 +97,7 @@ serve(async (req) => {
       }
     )
   } catch (error) {
+    console.error('Error in bKash payment:', error)
     return new Response(
       JSON.stringify({
         success: false,

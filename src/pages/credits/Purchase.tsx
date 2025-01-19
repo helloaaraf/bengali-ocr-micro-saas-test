@@ -37,9 +37,13 @@ const CreditPurchase = () => {
         return;
       }
 
+      console.log('Calling bKash payment function with:', { packageId, userId: user.id });
+      
       const { data, error } = await supabase.functions.invoke('bkash-payment', {
         body: { packageId, userId: user.id },
       });
+
+      console.log('bKash payment response:', { data, error });
 
       if (error) throw error;
 
