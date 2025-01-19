@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/components/ui/use-toast';
-import { Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2, User, Phone, Globe, FileText } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 
 const Profile = () => {
   const { toast } = useToast();
@@ -16,6 +17,7 @@ const Profile = () => {
     username: '',
     website: '',
     bio: '',
+    phone_number: '',
     avatar_url: '',
   });
 
@@ -36,6 +38,7 @@ const Profile = () => {
           username: profile.username || '',
           website: profile.website || '',
           bio: profile.bio || '',
+          phone_number: profile.phone_number || '',
           avatar_url: profile.avatar_url || '',
         });
       }
@@ -95,89 +98,125 @@ const Profile = () => {
   }
 
   return (
-    <div className="container max-w-4xl py-8">
-      <div className="bg-white rounded-lg shadow-sm border p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">Profile Settings</h1>
-          {!isEditing && (
-            <Button onClick={() => setIsEditing(true)}>
-              Edit Profile
-            </Button>
-          )}
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                disabled={!isEditing}
-                placeholder="Enter your username"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="website">Website</Label>
-              <Input
-                id="website"
-                name="website"
-                value={formData.website}
-                onChange={handleChange}
-                disabled={!isEditing}
-                placeholder="Enter your website URL"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="bio">Bio</Label>
-              <Textarea
-                id="bio"
-                name="bio"
-                value={formData.bio}
-                onChange={handleChange}
-                disabled={!isEditing}
-                placeholder="Tell us about yourself"
-                className="min-h-[100px]"
-              />
-            </div>
+    <div className="container max-w-2xl py-8 px-4 md:px-0">
+      <Card className="bg-white/50 backdrop-blur-sm border-0 shadow-lg">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-8">
+            <h1 className="text-2xl font-semibold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              Profile Settings
+            </h1>
+            {!isEditing && (
+              <Button 
+                onClick={() => setIsEditing(true)}
+                variant="outline"
+                className="hover:bg-primary hover:text-white transition-colors"
+              >
+                Edit Profile
+              </Button>
+            )}
           </div>
 
-          {isEditing && (
-            <div className="flex gap-4">
-              <Button
-                type="submit"
-                disabled={updateProfile.isPending}
-                className="flex-1"
-              >
-                {updateProfile.isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Save Changes
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setIsEditing(false);
-                  setFormData({
-                    username: profile?.username || '',
-                    website: profile?.website || '',
-                    bio: profile?.bio || '',
-                    avatar_url: profile?.avatar_url || '',
-                  });
-                }}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="username" className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  Username
+                </Label>
+                <Input
+                  id="username"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                  className="bg-white/50"
+                  placeholder="Enter your username"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone_number" className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  Phone Number
+                </Label>
+                <Input
+                  id="phone_number"
+                  name="phone_number"
+                  value={formData.phone_number}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                  className="bg-white/50"
+                  placeholder="Enter your phone number"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="website" className="flex items-center gap-2">
+                  <Globe className="h-4 w-4 text-muted-foreground" />
+                  Website
+                </Label>
+                <Input
+                  id="website"
+                  name="website"
+                  value={formData.website}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                  className="bg-white/50"
+                  placeholder="Enter your website URL"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="bio" className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  Bio
+                </Label>
+                <Textarea
+                  id="bio"
+                  name="bio"
+                  value={formData.bio}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                  className="min-h-[100px] bg-white/50"
+                  placeholder="Tell us about yourself"
+                />
+              </div>
             </div>
-          )}
-        </form>
-      </div>
+
+            {isEditing && (
+              <div className="flex gap-4 pt-4">
+                <Button
+                  type="submit"
+                  disabled={updateProfile.isPending}
+                  className="flex-1 bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity"
+                >
+                  {updateProfile.isPending && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  Save Changes
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsEditing(false);
+                    setFormData({
+                      username: profile?.username || '',
+                      website: profile?.website || '',
+                      bio: profile?.bio || '',
+                      phone_number: profile?.phone_number || '',
+                      avatar_url: profile?.avatar_url || '',
+                    });
+                  }}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+              </div>
+            )}
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 };
