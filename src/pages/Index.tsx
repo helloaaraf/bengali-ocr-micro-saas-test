@@ -3,7 +3,7 @@ import { createWorker } from 'tesseract.js';
 import ImageUpload from '@/components/ImageUpload';
 import TextOutput from '@/components/TextOutput';
 import { useToast } from '@/components/ui/use-toast';
-import { Loader2, RefreshCcw, LogOut, CreditCard, Send } from 'lucide-react';
+import { Loader2, RefreshCcw, LogOut, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -176,16 +176,10 @@ const Index = () => {
               Extract Bengali text from images with advanced optical character recognition
             </p>
           </div>
-          <div className="flex items-center gap-4">
-            <div className={`flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow transition-all duration-300 ${isDeductingCredits ? 'scale-110' : ''}`}>
-              <CreditCard className={`w-5 h-5 ${creditBalance < 50 ? 'text-red-600' : 'text-blue-600'} ${isDeductingCredits ? 'animate-spin' : ''}`} />
-              <span className="font-medium">{creditBalance} credits</span>
-            </div>
-            <Button variant="outline" onClick={handleSignOut}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
-            </Button>
-          </div>
+          <Button variant="outline" onClick={handleSignOut}>
+            <LogOut className="w-4 h-4 mr-2" />
+            Sign Out
+          </Button>
         </header>
 
         <div className="grid lg:grid-cols-2 gap-12">
