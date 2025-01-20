@@ -40,7 +40,11 @@ const CreditPurchase = () => {
       // Store the package info in localStorage for the callback
       const selectedPackage = packages?.find(pkg => pkg.id === packageId);
       if (selectedPackage) {
-        localStorage.setItem('pendingPackage', JSON.stringify(selectedPackage));
+        localStorage.setItem('pendingPackage', JSON.stringify({
+          id: selectedPackage.id,
+          credits: selectedPackage.credits,
+          price: selectedPackage.price
+        }));
       }
 
       console.log('Calling bKash payment function with:', { packageId, userId: user.id });

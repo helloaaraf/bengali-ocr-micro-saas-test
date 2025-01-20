@@ -63,7 +63,7 @@ const PaymentCallback = () => {
 
           // Redirect to dashboard after 2 seconds
           setTimeout(() => {
-            navigate('/credits/dashboard');
+            navigate('/credits');
           }, 2000);
         } else {
           throw new Error('Payment failed or invalid status');
@@ -87,9 +87,10 @@ const PaymentCallback = () => {
   }, [searchParams, navigate, toast, queryClient]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center">
-      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      <p className="mt-4 text-muted-foreground">পেমেন্ট প্রসেস হচ্ছে...</p>
+    <div className="min-h-screen flex flex-col items-center justify-center p-4">
+      <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+      <p className="text-lg text-center text-muted-foreground">পেমেন্ট প্রসেস হচ্ছে...</p>
+      <p className="text-sm text-center text-muted-foreground mt-2">অনুগ্রহ করে অপেক্ষা করুন</p>
     </div>
   );
 };
