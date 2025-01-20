@@ -16,17 +16,21 @@ const PaymentCallback = () => {
       const status = searchParams.get('status');
       const paymentID = searchParams.get('paymentID');
       
-      console.log('Processing payment:', { status, paymentID });
+      console.log('Processing payment callback:', { status, paymentID });
 
       try {
         if (status === 'success' && paymentID) {
           // Get the current user
           const { data: { user }, error: userError } = await supabase.auth.getUser();
+          console.log('Current user in callback:', user);
+          
           if (userError) throw userError;
           if (!user) throw new Error('No user found');
 
           // Get the pending package from local storage
           const pendingPackageStr = localStorage.getItem('pendingPackage');
+          console.log('Pending package from localStorage:', pendingPackageStr);
+          
           if (!pendingPackageStr) {
             throw new Error('No pending package found');
           }

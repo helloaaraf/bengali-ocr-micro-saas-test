@@ -19,6 +19,7 @@ const CreditPurchase = () => {
         .order('credits', { ascending: true });
 
       if (error) throw error;
+      console.log('Fetched packages:', data);
       return data;
     },
   });
@@ -27,6 +28,7 @@ const CreditPurchase = () => {
     try {
       setIsLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
+      console.log('Current user:', user);
       
       if (!user) {
         toast({
@@ -40,11 +42,15 @@ const CreditPurchase = () => {
       // Store the package info in localStorage for the callback
       const selectedPackage = packages?.find(pkg => pkg.id === packageId);
       if (selectedPackage) {
-        localStorage.setItem('pendingPackage', JSON.stringify({
+        const packageInfo = {
           id: selectedPackage.id,
           credits: selectedPackage.credits,
           price: selectedPackage.price
-        }));
+        };
+        console.log('Storing package info:', packageInfo);
+        localStorage.setItem('pendingPackage', JSON.stringify(packageInfo));
+      } else {
+        throw new Error('Selected package not found');
       }
 
       console.log('Calling bKash payment function with:', { packageId, userId: user.id });
@@ -62,11 +68,11 @@ const CreditPurchase = () => {
       } else {
         throw new Error('বিকাশ পেমেন্ট URL পাওয়া যায়নি');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Payment error:', error);
       toast({
         title: 'পেমেন্ট ব্যর্থ হয়েছে',
-        description: 'অনুগ্রহ করে আবার চেষ্টা করুন',
+        description: error.message || 'অনুগ্রহ করে আবার চেষ্টা করুন',
         variant: 'destructive',
       });
     } finally {
