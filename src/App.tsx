@@ -28,47 +28,77 @@ const App = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        console.error('Error fetching session:', error);
-        toast({
-          title: 'Session Error',
-          description: 'Please try logging in again.',
-          variant: 'destructive',
-        });
+    // Initialize session
+    const initSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Error fetching session:', error);
+          toast({
+            title: 'Session Error',
+            description: 'Please try logging in again.',
+            variant: 'destructive',
+          });
+        }
+        setSession(session);
+      } catch (error) {
+        console.error('Session initialization error:', error);
+      } finally {
+        setLoading(false);
       }
-      setSession(session);
-      setLoading(false);
-    });
+    };
+
+    initSession();
 
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (_event === 'SIGNED_OUT' || _event === 'USER_DELETED') {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event);
+      
+      if (event === 'SIGNED_OUT') {
         // Clear any application cache/state
         queryClient.clear();
-      }
-      
-      setSession(session);
-      
-      if (_event === 'TOKEN_REFRESHED') {
-        console.log('Session token refreshed');
-      }
-      
-      if (_event === 'SIGNED_IN') {
+        setSession(null);
+        toast({
+          title: 'Signed out',
+          description: 'You have been signed out successfully.',
+        });
+      } else if (event === 'SIGNED_IN') {
+        setSession(session);
         toast({
           title: 'Signed in successfully',
           description: 'Welcome back!',
         });
+      } else if (event === 'TOKEN_REFRESHED') {
+        console.log('Session token refreshed');
+        setSession(session);
       }
     });
 
+    // Cleanup subscription
     return () => {
       subscription.unsubscribe();
     };
   }, [toast]);
+
+  // Handle session recovery
+  useEffect(() => {
+    if (!session) {
+      const recoverSession = async () => {
+        try {
+          const { data: { session: recoveredSession }, error } = await supabase.auth.getSession();
+          if (recoveredSession && !error) {
+            setSession(recoveredSession);
+          }
+        } catch (error) {
+          console.error('Session recovery failed:', error);
+        }
+      };
+
+      recoverSession();
+    }
+  }, [session]);
 
   if (loading) {
     return (
