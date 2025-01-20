@@ -26,11 +26,12 @@ const PaymentCallback = () => {
           if (!user) throw new Error('No user found');
 
           // Get the pending package from local storage
-          const pendingPackage = JSON.parse(localStorage.getItem('pendingPackage') || '{}');
-          if (!pendingPackage.id) {
+          const pendingPackageStr = localStorage.getItem('pendingPackage');
+          if (!pendingPackageStr) {
             throw new Error('No pending package found');
           }
 
+          const pendingPackage = JSON.parse(pendingPackageStr);
           console.log('Processing purchase for package:', pendingPackage);
 
           // Call the process_credit_purchase function
@@ -41,7 +42,10 @@ const PaymentCallback = () => {
             p_payment_method: 'bkash'
           });
 
-          if (error) throw error;
+          if (error) {
+            console.error('Purchase processing error:', error);
+            throw error;
+          }
 
           console.log('Purchase processed:', data);
 
@@ -64,7 +68,7 @@ const PaymentCallback = () => {
         } else {
           throw new Error('Payment failed or invalid status');
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Payment processing error:', error);
         toast({
           title: 'পেমেন্ট প্রসেস করতে সমস্যা হয়েছে',
