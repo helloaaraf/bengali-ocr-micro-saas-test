@@ -27,14 +27,22 @@ const PaymentCallback = () => {
           const { data: { user }, error: userError } = await supabase.auth.getUser();
           console.log('Current user in callback:', user);
           
-          if (userError) throw userError;
-          if (!user) throw new Error('No user found');
+          if (userError) {
+            console.error('User error:', userError);
+            throw userError;
+          }
+          
+          if (!user) {
+            console.error('No user found');
+            throw new Error('No user found');
+          }
 
           // Get the pending package from local storage
           const pendingPackageStr = localStorage.getItem('pendingPackage');
           console.log('Pending package from localStorage:', pendingPackageStr);
           
           if (!pendingPackageStr) {
+            console.error('No pending package found');
             throw new Error('No pending package found');
           }
 

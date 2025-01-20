@@ -53,10 +53,19 @@ const CreditPurchase = () => {
         throw new Error('Selected package not found');
       }
 
-      console.log('Calling bKash payment function with:', { packageId, userId: user.id });
+      // Get the current URL to construct the callback URL
+      const baseUrl = window.location.origin;
+      const callbackUrl = `${baseUrl}/credits/purchase/callback`;
+      console.log('Callback URL:', callbackUrl);
+
+      console.log('Calling bKash payment function with:', { packageId, userId: user.id, callbackUrl });
       
       const { data, error } = await supabase.functions.invoke('bkash-payment', {
-        body: { packageId, userId: user.id },
+        body: { 
+          packageId, 
+          userId: user.id,
+          callbackUrl 
+        },
       });
 
       console.log('bKash payment response:', { data, error });
